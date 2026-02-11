@@ -18,7 +18,7 @@ function displayMessages() {
   const messages = loadMessagesFromLocal();
   
   if (messages.length === 0) {
-    messagesDisplay.innerHTML = '<p style="text-align: center; color: #999;">No messages yet. Be the first to leave one!</p>';
+    messagesDisplay.innerHTML = '<p style="text-align: center; color: #999;">No messages yet.  Lipi\'s Message Section </p>';
     return;
   }
   
