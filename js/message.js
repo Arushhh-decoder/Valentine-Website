@@ -7,7 +7,51 @@ function saveMessageLocally(messageData) {
 
 // Load messages from localStorage
 function loadMessagesFromLocal() {
-  return JSON.parse(localStorage.getItem('messages')) || [];
+  try {
+    const rawMessages = JSON.parse(localStorage.getItem('messages'));
+    return Array.isArray(rawMessages) ? rawMessages : [];
+  } catch (error) {
+    return [];
+  }
+}
+
+function escapeHTML(value) {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function normalizeMessageData(msg) {
+  if (typeof msg === 'string') {
+    return {
+      message: msg,
+      timestamp: new Date().toISOString(),
+      receivedAt: new Date().toLocaleString()
+    };
+  }
+
+  if (!msg || typeof msg !== 'object') {
+    return null;
+  }
+
+  const messageText = typeof msg.message === 'string'
+    ? msg.message
+    : (typeof msg.text === 'string' ? msg.text : '');
+
+  if (messageText.trim() === '') {
+    return null;
+  }
+
+  const timestamp = msg.timestamp || new Date().toISOString();
+
+  return {
+    message: messageText,
+    timestamp,
+    receivedAt: msg.receivedAt || new Date(timestamp).toLocaleString()
+  };
 }
 
 // Display messages on the page
@@ -15,7 +59,9 @@ function displayMessages() {
   const messagesDisplay = document.getElementById('messagesDisplay');
   if (!messagesDisplay) return; // Skip if not on the messages page
   
-  const messages = loadMessagesFromLocal();
+  const messages = loadMessagesFromLocal()
+    .map(normalizeMessageData)
+    .filter(Boolean);
   
   if (messages.length === 0) {
     messagesDisplay.innerHTML = '<p style="text-align: center; color: #999;">No messages yet.  Lipi\'s Message Section </p>';
@@ -28,7 +74,7 @@ function displayMessages() {
         <span class="message-time">${msg.receivedAt || new Date(msg.timestamp).toLocaleString()}</span>
       </div>
       <div class="message-content">
-        ${msg.message.replace(/\n/g, '<br>')}
+        ${escapeHTML(msg.message).replace(/\n/g, '<br>')}
       </div>
     </div>
   `).join('');
